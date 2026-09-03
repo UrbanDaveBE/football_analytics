@@ -25,7 +25,7 @@ class FleaflickerClient:
     def __init__(self, base: str = settings.FLEAFLICKER_BASE, ttl: int = settings.FLEAFLICKER_TTL):
         self.base = base
         self.ttl = ttl
-        self._http = httpx.Client(timeout=30, headers={"User-Agent": "football-analytics/0.1"})
+        self._http = httpx.Client(timeout=30, headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36 football-analytics/0.1", "Accept": "application/json"})
 
     # ---------------------------------------------------------------- caching
     def _cache_path(self, endpoint: str, params: list[tuple[str, Any]]):

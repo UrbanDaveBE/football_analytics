@@ -12,3 +12,20 @@ services:
       - NFLVERSE_TTL=21600    # Sekunden, wie lange nflverse-Dateien gecacht werden
       - TZ=Europe/Berlin
     restart: unless-stopped
+
+  # Optional: JupyterLab mit dem Notebook, starten mit  docker compose --profile notebook up -d
+  #   → http://<nas-ip>:8888  (Token im Log: docker compose logs notebook)
+  notebook:
+    profiles: ["notebook"]
+    image: python:3.12-slim
+    container_name: football-analytics-notebook
+    working_dir: /work
+    command: sh -c "pip install -q -r notebooks/requirements.txt && jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --ServerApp.root_dir=/work"
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./:/work
+      - ./data:/data
+    environment:
+      - DATA_DIR=/data
+    restart: unless-stopped

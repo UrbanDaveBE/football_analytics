@@ -37,6 +37,19 @@ Beim ersten Aufruf: unter *Ligen / Stammdaten* die Liga-ID (z. B. `354024`) impo
 
 Für Synology/QNAP: Ordner auf das NAS kopieren, in Container Manager / Container Station als Compose-Projekt anlegen, oder das Image auf einem Rechner bauen (`docker build -t football-analytics .`) und exportieren.
 
+## Jupyter-Notebook (lokal)
+
+`notebooks/analysis.ipynb` nutzt dieselben Module wie das Backend, ohne Server – Defense-Tabelle, „schwache Defense → wer spielt dagegen“, Ausblick-Tabellen und Heatmap als DataFrames zum Weiterrechnen.
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1          # Linux/macOS: source .venv/bin/activate
+pip install -r notebooks\requirements.txt
+jupyter lab notebooks\analysis.ipynb     # oder in VS Code öffnen und als Kernel ".venv" wählen
+```
+
+Oder als Container neben dem Tool: `docker compose --profile notebook up -d` → `http://<nas-ip>:8888` (Token: `docker compose logs notebook`). Liga-Konfig und Caches teilen sich beide in `./data`.
+
 ## Auf GitHub und in die Registry
 
 ```bash
@@ -47,7 +60,7 @@ git remote add origin https://github.com/UrbanDaveBE/football_analytics.git
 git push -u origin main
 ```
 
-Der Workflow `.github/workflows/docker.yml` baut danach bei jedem Push das Image (amd64 + arm64) und legt es unter
+Der Workflow `.github/workflows/docker.yml` baut danach bei jedem Push das Image (amd64; arm64 in der Workflow-Datei zuschaltbar) und legt es unter
 `ghcr.io/urbandavebe/football_analytics:latest` ab (Repo → *Packages*). Beim ersten Mal das Package auf GitHub auf
 *public* stellen (Package → Settings → Change visibility), dann kann das NAS ohne Login ziehen:
 

@@ -4,3 +4,6 @@ frontend/dist/
 __pycache__/
 .pytest_cache/
 *.pyc
+.venv/
+.ipynb_checkpoints/
+notebooks/.venv/
