@@ -1,0 +1,14 @@
+services:
+  football-analytics:
+    build: .
+    image: football-analytics:latest
+    container_name: football-analytics
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/data          # Liga-Stammdaten + Caches (nflverse-Downloads, Fleaflicker-Antworten)
+    environment:
+      - FLEAFLICKER_TTL=1800  # Sekunden, wie lange Fleaflicker-Antworten gecacht werden
+      - NFLVERSE_TTL=21600    # Sekunden, wie lange nflverse-Dateien gecacht werden
+      - TZ=Europe/Berlin
+    restart: unless-stopped

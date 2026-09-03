@@ -1,0 +1,16 @@
+# Für das NAS: fertiges Image aus der GitHub-Registry ziehen statt selbst bauen.
+#   docker compose -f docker-compose.nas.yml up -d
+#   docker compose -f docker-compose.nas.yml pull && docker compose -f docker-compose.nas.yml up -d   # Update
+services:
+  football-analytics:
+    image: ghcr.io/urbandavebe/football_analytics:latest
+    container_name: football-analytics
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/data
+    environment:
+      - FLEAFLICKER_TTL=1800
+      - NFLVERSE_TTL=21600
+      - TZ=Europe/Berlin
+    restart: unless-stopped
