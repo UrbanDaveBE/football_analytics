@@ -231,14 +231,25 @@ def schedule_lookup(sched: pd.DataFrame) -> dict[int, dict[str, dict]]:
     return out
 
 
-@lru_cache(maxsize=8)
+def week_starts(season: int) -> dict:
+    """{week: date of first game of that week}"""
+    try:
+        sched = load_schedule(season)
+    except RuntimeError:
+        return {}
+    out = {}
+    for wk, grp in sched.groupby("week"):
+        out[int(wk)] = pd.to_datetime(grp["gameday"]).min().date()
+    return out
+
+
 def current_week(season: int) -> int:
-    """First regular-season week whose games are not all in the past."""
+    """First regular-season week whose games are not all in the past (Tuesday switches to next week)."""
     try:
         sched = load_schedule(season)
     except RuntimeError:
         return 1
-    today = pd.Timestamp.utcnow().tz_localize(None).normalize()
+    today = pd.Timestamp.now(tz="Europe/Berlin").tz_localize(None).normalize()
     for wk, grp in sched.groupby("week"):
         last = pd.to_datetime(grp["gameday"]).max()
         if last + pd.Timedelta(days=1) >= today:
@@ -253,12 +264,26 @@ def player_game_log(stats: pd.DataFrame, rules: list[ScoringRule]) -> pd.DataFra
     d = stats.copy()
     d["fpts"] = apply_scoring(d, rules)
     d = d.sort_values(["player_id", "week"])
+    for c in ["targets", "carries", "receptions", "target_share"]:
+        if c not in d.columns:
+            d[c] = 0.0
+    d["touches"] = d["targets"].fillna(0) + d["carries"].fillna(0)
     g = d.groupby("player_id")
     out = pd.DataFrame({
         "games": g["week"].count(),
         "avg": g["fpts"].mean(),
         "std": g["fpts"].std().fillna(0),
         "last3": g["fpts"].apply(lambda s: s.tail(3).mean()),
+        "max": g["fpts"].max(),
+        "min": g["fpts"].min(),
+        "last_week": g["week"].max(),
+        "touches_avg": g["touches"].mean(),
+        "touches_last3": g["touches"].apply(lambda s: s.tail(3).mean()),
+        "targets_avg": g["targets"].mean(),
+        "carries_avg": g["carries"].mean(),
+        "target_share": g["target_share"].mean(),
+        "log": g.apply(lambda x: [[int(w), round(float(p), 1)] for w, p in zip(x["week"], x["fpts"])],
+                       include_groups=False),
         "name": g["player_display_name"].last() if "player_display_name" in d.columns else g["player_name"].last(),
         "position": g["position"].last(),
         "team": g["team"].last(),

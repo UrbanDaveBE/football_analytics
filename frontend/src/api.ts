@@ -9,8 +9,16 @@ export interface Status {
   season: number; week: number; positions: string[]; stats_current_rows: number; stats_prior_rows: number;
   defense_teams: number; schedule_weeks: number; league_teams: Team[]; owned_players: number; scoring_rules: number;
 }
+export interface Availability {
+  status: string | null; season_ending: boolean; return_week: number | null; note: string; source: string;
+  level: "ok" | "warn" | "out" | "season";
+}
+export interface PlayerStats {
+  games?: number; last3?: number; std?: number; max?: number; min?: number; touches?: number; touches_last3?: number;
+  targets?: number; carries?: number; target_share?: number; trend?: number; log?: [number, number][]; role_flag?: string | null;
+}
 export interface WeekMatchup {
-  week: number; opponent: string | null; home?: boolean; bye: boolean; factor: number; score: number;
+  week: number; opponent: string | null; home?: boolean; bye: boolean; factor: number; score: number; avail?: number;
   pos_rank?: number; pts_allowed?: number; run_rank?: number; pass_rank?: number; date?: string;
 }
 export interface PlayerRow {
@@ -20,6 +28,22 @@ export interface PlayerRow {
   ff_matchup_rank: number | null; ff_matchup_rating: string | null; ff_category_ranks: Record<string, number>;
   baseline: number | null; baseline_source: string; weeks: WeekMatchup[];
   outlook_total: number; outlook_avg: number; best_week: number | null; worst_week: number | null; bye_in_range: boolean;
+  availability: Availability; stats: PlayerStats; role_flag: string | null; headshot?: string | null;
+  news?: { title: string; contents: string; url?: string; time?: string }[];
+}
+export interface SlimPlayer {
+  id: number; name: string; position: string; team: string; owner_team_name: string | null;
+  outlook_total: number; outlook_avg: number; baseline: number | null; role_flag: string | null;
+  availability: Availability; weeks: WeekMatchup[];
+  score?: number; opponent?: string | null; home?: boolean; bye?: boolean;
+}
+export interface Recommendations {
+  weeks: number[]; projected_total: number;
+  lineups: { week: number; total: number; starters: { slot: string; score: number; player: SlimPlayer | null }[]; bench: SlimPlayer[] }[];
+  alerts: { level: string; player: string; text: string }[];
+  upgrades: { add: SlimPlayer; drop: SlimPlayer; gain: number; gain_per_week: number }[];
+  depth: { position: string; weakest: SlimPlayer; candidates: SlimPlayer[] }[];
+  streamers: { week: number; positions: Record<string, SlimPlayer[]> }[];
 }
 export interface DefenseRow {
   team: string; games_current: number; games_prior: number; prior_weight: number;
@@ -57,6 +81,12 @@ export const api = {
     req<{ season: number; week: number; weeks: number[]; count: number; players: PlayerRow[] }>(`/api/leagues/${id}/players?${qs(p)}`),
   matchups: (id: number, p: { week?: number; position: string; top?: number }) =>
     req<{ week: number; position: string; sorted_by: string; defenses: MatchupDefense[] }>(`/api/leagues/${id}/matchups?${qs(p)}`),
+  recommendations: (id: number, p: { from_week?: number; weeks?: number }) =>
+    req<Recommendations>(`/api/leagues/${id}/recommendations?${qs(p)}`),
+  compare: (id: number, ids: number[], p: { from_week?: number; weeks?: number }) =>
+    req<{ weeks: number[]; players: PlayerRow[] }>(`/api/leagues/${id}/compare?${qs({ ...p, ids: ids.join(",") })}`),
+  search: (id: number, q: string) =>
+    req<{ id: number; name: string; position: string; team: string; owner: string }[]>(`/api/leagues/${id}/search?${qs({ q })}`),
   roster: (id: number, teamId: number, p: { from_week?: number; weeks?: number }) =>
     req<{ weeks: number[]; players: PlayerRow[] }>(`/api/leagues/${id}/roster/${teamId}?${qs(p)}`),
 };

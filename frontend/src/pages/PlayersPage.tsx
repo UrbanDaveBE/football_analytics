@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { api, League, Team } from "../api";
-import { Err, OwnerBadge, rankColor, useAsync, useSort, WeekCell } from "../ui";
+import { AvailBadge, CompareBox, Err, OwnerBadge, rankColor, RoleBadge, useAsync, useSort, WeekCell } from "../ui";
 
 /** Free Agents / Gegner-Roster mit Ausblick über N Wochen */
 export function PlayersPage({ league, week, teams }: { league: League; week: number; teams: Team[] }) {
@@ -48,15 +48,17 @@ export function PlayersPage({ league, week, teams }: { league: League; week: num
           <table>
             <thead>
               <tr>
+                <th title="Zum Vergleich auswählen">⚖</th>
                 <Th k="name">Spieler</Th><Th k="position">Pos</Th><Th k="team">Team</Th><Th k="owner_team_name">Besitzer</Th>
                 <Th k="baseline" num>Basis</Th><Th k="projected" num>FF-Proj. W{data.week}</Th><Th k="ff_matchup_rank" num>FF-Matchup</Th>
                 {data.weeks.map((w, i) => <Th key={w} k={`weeks.${i}.score`} num>W{w}</Th>)}
-                <Th k="outlook_avg" num>Ø Ausblick</Th><Th k="outlook_total" num>Σ</Th><Th k="bye_week" num>Bye</Th><Th k="injury">Status</Th>
+                <Th k="outlook_avg" num>Ø Ausblick</Th><Th k="outlook_total" num>Σ</Th><Th k="stats.trend" num>Trend</Th><Th k="bye_week" num>Bye</Th><Th k="availability.level">Status</Th>
               </tr>
             </thead>
             <tbody>
               {sorted.map((p) => (
                 <tr key={p.id}>
+                  <td><CompareBox id={p.id} /></td>
                   <td><b>{p.name}</b></td>
                   <td>{p.position}</td>
                   <td>{p.team}</td>
@@ -67,8 +69,9 @@ export function PlayersPage({ league, week, teams }: { league: League; week: num
                   {p.weeks.map((w) => <td key={w.week} className="num"><WeekCell w={w} /></td>)}
                   <td className="num"><b>{p.outlook_avg.toFixed(1)}</b></td>
                   <td className="num">{p.outlook_total.toFixed(1)}</td>
+                  <td className="num" title="letzte 3 Spiele minus Saisonschnitt">{p.stats?.trend !== undefined ? <span style={{ color: p.stats.trend > 1.5 ? "var(--accent)" : p.stats.trend < -1.5 ? "var(--bad)" : undefined }}>{p.stats.trend > 0 ? "+" : ""}{p.stats.trend}</span> : "–"}</td>
                   <td className="num">{p.bye_week ?? "–"}</td>
-                  <td>{p.injury && <span className="badge inj">{p.injury}</span>}</td>
+                  <td><AvailBadge a={p.availability} /> <RoleBadge flag={p.role_flag} /></td>
                 </tr>
               ))}
             </tbody>

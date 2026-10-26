@@ -158,10 +158,10 @@ def test_analysis_context_offline(rules, listing, monkeypatch, tmp_path):
     assert [p.name for p in pool][:2] == ["Jalen Hurts", "Lamar Jackson"]
     rows = [ctx.analyze_player(p, [1, 2, 3, 4]) for p in pool]
     hurts = rows[0]
-    assert hurts["baseline_source"].startswith("2025 avg")          # matched by name to synthetic log
+    assert hurts["baseline_source"].startswith("Ø 2025")          # matched by name to synthetic log
     assert [w["opponent"] for w in hurts["weeks"]] == ["WAS", "WAS", "DET", None]
     assert hurts["weeks"][3]["bye"] is True
     assert hurts["weeks"][2]["factor"] > hurts["weeks"][0]["factor"]  # DET soft vs pass
     assert hurts["weeks"][2]["pass_rank"] == 32
     lamar = next(r for r in rows if r["name"] == "Lamar Jackson")
-    assert lamar["owner_team_id"] == 7 and lamar["baseline_source"] == "Fleaflicker projection"
+    assert lamar["owner_team_id"] == 7 and lamar["baseline_source"] == "Fleaflicker-Projektion"

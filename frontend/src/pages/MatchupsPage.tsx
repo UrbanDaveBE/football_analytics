@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { api, League } from "../api";
-import { Err, OwnerBadge, rankColor, useAsync } from "../ui";
+import { AvailBadge, CompareBox, Err, OwnerBadge, rankColor, RoleBadge, useAsync } from "../ui";
 
 const POS = ["RB", "WR", "QB", "TE", "K"];
 
@@ -51,7 +51,7 @@ export function MatchupsPage({ league, week }: { league: League; week: number })
                         <td className="num" title={p.baseline_source}>{p.baseline?.toFixed(1) ?? "–"} <span className="muted small">{p.baseline_source}</span></td>
                         <td className="num">{p.projected?.toFixed(1) ?? "–"}</td>
                         <td className="num">{p.ff_matchup_rank ? <span className="cell" style={{ background: rankColor(p.ff_matchup_rank) }}>#{p.ff_matchup_rank}</span> : "–"}</td>
-                        <td>{p.injury && <span className="badge inj">{p.injury}</span>}</td>
+                        <td><AvailBadge a={p.availability} /> <RoleBadge flag={p.role_flag} /> <CompareBox id={p.id} /></td>
                       </tr>
                     );
                   })}

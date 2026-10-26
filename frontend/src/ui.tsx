@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { PlayerRow, WeekMatchup } from "./api";
+import type { Availability, PlayerRow, WeekMatchup } from "./api";
 
 /** green (soft matchup) .. red (tough matchup) from a factor around 1.0 */
 export function factorColor(f: number | undefined | null): string {
@@ -22,8 +22,19 @@ export function OwnerBadge({ p, myTeamId }: { p: PlayerRow; myTeamId: number | n
   return <span className="badge other" title={p.owner_team_name ?? ""}>{p.owner_team_name}</span>;
 }
 
+export function AvailBadge({ a, compact }: { a?: Availability | null; compact?: boolean }) {
+  if (!a || a.level === "ok") return null;
+  const label = a.season_ending ? "SAISON-AUS" : a.status + (a.return_week ? ` →W${a.return_week}` : "");
+  return <span className={`badge av-${a.level}`} title={`${a.note || ""}${a.source ? ` (${a.source})` : ""}`}>{compact ? label.split(" ")[0] : label}</span>;
+}
+
+export function RoleBadge({ flag }: { flag?: string | null }) {
+  return flag ? <span className="badge av-warn" title={flag}>Rolle?</span> : null;
+}
+
 export function WeekCell({ w }: { w: WeekMatchup }) {
   if (w.bye) return <span className="cell muted">BYE</span>;
+  if (w.avail === 0) return <span className="cell" style={{ background: "rgba(248,81,73,.25)" }} title={`${w.home ? "vs" : "@"} ${w.opponent} – fällt aus`}>OUT <span className="small muted">{w.opponent}</span></span>;
   const rank = w.pos_rank;
   const title = `${w.home ? "vs" : "@"} ${w.opponent} · Rang vs. Position ${rank ?? "?"}/32 · Run-D ${w.run_rank ?? "?"} · Pass-D ${w.pass_rank ?? "?"} · Faktor ${w.factor.toFixed(2)}`;
   return (
@@ -71,4 +82,25 @@ export function useSort<T>(rows: T[] | undefined, initial: string, dir: "asc" | 
     <th className={num ? "num" : ""} onClick={() => toggle(k)}>{children}{key === k ? (d === "asc" ? " ▲" : " ▼") : ""}</th>
   );
   return { sorted, Th };
+}
+
+/** global compare selection, persisted per browser */
+const KEY = "compareIds";
+function readIds(): number[] { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch { return []; } }
+const listeners = new Set<(ids: number[]) => void>();
+export function setCompareIds(ids: number[]) {
+  const v = Array.from(new Set(ids)).slice(0, 6);
+  try { localStorage.setItem(KEY, JSON.stringify(v)); } catch { /* ignore */ }
+  listeners.forEach((l) => l(v));
+}
+export function useCompare() {
+  const [ids, setIds] = useState<number[]>(readIds);
+  useEffect(() => { listeners.add(setIds); return () => { listeners.delete(setIds); }; }, []);
+  const toggle = (id: number) => setCompareIds(ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]);
+  return { ids, toggle, set: setCompareIds };
+}
+
+export function CompareBox({ id }: { id: number }) {
+  const { ids, toggle } = useCompare();
+  return <input type="checkbox" title="zum Vergleich" checked={ids.includes(id)} onChange={() => toggle(id)} />;
 }

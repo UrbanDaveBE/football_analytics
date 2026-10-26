@@ -84,7 +84,8 @@ class FleaflickerClient:
     def player_listing(self, league_id: int, *, sport: str = "NFL", sort: str = "SORT_PROJECTIONS",
                        season: int | None = None, period: int | None = None, offset: int = 0,
                        positions: list[str] | None = None, free_agent_only: bool | None = None,
-                       query: str | None = None, force: bool = False) -> dict:
+                       query: str | None = None, player_ids: list[int] | None = None,
+                       force: bool = False) -> dict:
         params: list[tuple[str, Any]] = [("sport", sport), ("league_id", league_id), ("sort", sort),
                                          ("sort_season", season), ("sort_period", period),
                                          ("result_offset", offset or None),
@@ -93,6 +94,8 @@ class FleaflickerClient:
                                          ("external_id_type", "SPORTRADAR")]
         for p in positions or []:
             params.append(("filter.position.eligibility", p))
+        for i in player_ids or []:
+            params.append(("filter.player_id", i))
         return self.get("FetchPlayerListing", params, force=force)
 
     def player_pool(self, league_id: int, *, season: int | None, period: int | None,
@@ -157,6 +160,10 @@ class Player:
     ff_matchup_rank: int | None = None      # Fleaflicker: opponent rank vs. position (32 = softest)
     ff_matchup_rating: str | None = None
     ff_category_ranks: dict = field(default_factory=dict)
+    injury_raw: dict = field(default_factory=dict)
+    news: list = field(default_factory=list)
+    headshot: str | None = None
+    slot: str | None = None
 
 
 def _val(v: Any) -> float | None:
@@ -181,6 +188,10 @@ def parse_player(entry: dict) -> Player:
         projected=_val(entry.get("viewingProjectedPoints")),
         season_avg=_val(entry.get("seasonAverage")) or _val(entry.get("viewingActualPointsAverage")),
         draft_rank=(entry.get("rankDraft") or {}).get("ordinal"),
+        injury_raw=inj,
+        news=[{"title": n.get("title", ""), "contents": n.get("contents", ""), "url": n.get("url"),
+               "time": n.get("timeEpochMilli")} for n in (pp.get("news") or [])[:3]],
+        headshot=pp.get("headshotUrl"),
     )
     owner = entry.get("owner")
     if owner:

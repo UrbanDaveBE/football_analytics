@@ -230,6 +230,41 @@ def roster(league_id: int, team_id: int, from_week: Optional[int] = None, weeks:
     return {"weeks": wks, "players": [ctx.analyze_player(p, wks) for p in pl]}
 
 
+@app.get("/api/leagues/{league_id}/recommendations")
+def recommendations(league_id: int, from_week: Optional[int] = None, weeks: Optional[int] = None):
+    """Optimal lineup per week, alerts for my roster, waiver upgrades, depth upgrades, streamers."""
+    ctx = _ctx(league_id)
+    try:
+        return ctx.recommendations(_weeks(ctx, from_week, weeks))
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except FleaflickerError as e:
+        raise HTTPException(502, str(e))
+
+
+@app.get("/api/leagues/{league_id}/compare")
+def compare(league_id: int, ids: str, from_week: Optional[int] = None, weeks: Optional[int] = None):
+    """Side by side comparison of players (ids comma separated)."""
+    ctx = _ctx(league_id)
+    wks = _weeks(ctx, from_week, weeks)
+    id_list = [int(x) for x in ids.split(",") if x.strip().isdigit()][:6]
+    try:
+        pl = ctx.players_by_id(id_list)
+    except FleaflickerError as e:
+        raise HTTPException(502, str(e))
+    return {"weeks": wks, "players": [ctx.analyze_player(p, wks) for p in pl]}
+
+
+@app.get("/api/leagues/{league_id}/search")
+def search(league_id: int, q: str, limit: int = 15):
+    """Name search in the player pool (for the compare picker)."""
+    ctx = _ctx(league_id)
+    ql = q.lower()
+    hits = [p for p in ctx.player_pool() if ql in p.name.lower()][:limit]
+    return [{"id": p.id, "name": p.name, "position": p.position, "team": p.team,
+             "owner": p.owner_team_name or "FA"} for p in hits]
+
+
 # ------------------------------------------------------------------ static
 if settings.STATIC_DIR.exists():
     app.mount("/assets", StaticFiles(directory=settings.STATIC_DIR / "assets"), name="assets")

@@ -39,3 +39,22 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .legend { display: flex; gap: 10px; flex-wrap: wrap; color: var(--muted); font-size: 12px; margin: 8px 0; }
 .spinner { color: var(--muted); padding: 20px; }
 details summary { cursor: pointer; color: var(--muted); }
+
+.badge.av-warn { background: rgba(210,153,34,.2); color: var(--warn); }
+.badge.av-out { background: rgba(248,81,73,.2); color: var(--bad); }
+.badge.av-season { background: var(--bad); color: #fff; }
+.alert { padding: 6px 10px; border-radius: 6px; margin-bottom: 6px; border-left: 4px solid var(--muted); background: var(--panel); }
+.alert.season, .alert.out { border-color: var(--bad); }
+.alert.warn { border-color: var(--warn); }
+.gain { color: var(--accent); font-weight: 700; }
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+.tabs button { background: var(--panel); border: 1px solid var(--border); color: var(--muted); padding: 4px 10px; border-radius: 6px; cursor: pointer; }
+.tabs button.active { color: var(--text); border-color: var(--accent2); }
+.cmp td:first-child { color: var(--muted); }
+.cmp td.best { color: var(--accent); font-weight: 700; }
+.fab { position: fixed; right: 20px; bottom: 20px; z-index: 10; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+.chip { display: inline-flex; gap: 6px; align-items: center; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 2px 8px; margin: 2px; }
+.chip button { background: none; border: none; color: var(--muted); cursor: pointer; }
+.searchlist { position: absolute; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; z-index: 20; min-width: 280px; }
+.searchlist div { padding: 6px 10px; cursor: pointer; }
+.searchlist div:hover { background: var(--bg); }

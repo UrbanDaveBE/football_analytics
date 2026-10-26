@@ -4,6 +4,9 @@ Fantasy-Football-Helfer für Fleaflicker-Ligen. Läuft als ein Docker-Container 
 
 ## Was es macht
 
+- **Empfehlungen**: optimale Aufstellung pro Woche nach den Slot-Regeln, Warnungen zum eigenen Roster (OUT/IR/Saisonende, IR-Slot, Rollenverlust), Waiver-Upgrades (Free Agent rein, wer raus, Punktgewinn in der optimalen Aufstellung), Tiefe pro Position und beste Free-Agent-Streamer pro Woche.
+- **Vergleich**: bis zu 6 Spieler nebeneinander (Ausblick, Form, Konstanz, Touches, Target-Share, Wochen-Scores, Spielverlauf-Chart); Auswahl über ⚖ in allen Tabellen oder Suche.
+- **Verfügbarkeit**: Fleaflicker-Status (Q/D/OUT/IR) + ESPN-Injury-Report (Rückkehrdatum) + News-Stichworte („season-ending“, „torn ACL“, „out 4-6 weeks“) → Score 0 solange verletzt, Q = ×0.8.
 - **Ligen / Stammdaten**: Liga per Fleaflicker-ID importieren. Roster-Slots (QB, RB, WR, TE, Flex, K, …) und Scoring-Regeln werden aus der Fleaflicker-API gelesen und lassen sich im GUI anpassen (Slot aktiv, Anzahl Starter, Ausblick-Wochen, eigenes Team).
 - **Matchups (Defense → Spieler)**: Für eine Woche und Position die schwächsten Defenses (Run-Defense für RB, Pass-Defense für QB/WR/TE) und darunter alle Spieler, die gegen sie spielen – mit Besitzer (Free Agent / mein Team / anderer Teilnehmer).
 - **Spieler & Ausblick**: Free Agents, eigenes Roster oder Roster eines Gegners mit Score für die aktuelle Woche und die nächsten 3–5+ Wochen (farbcodiert nach Matchup-Stärke), Bye-Weeks, Verletzungsstatus, Fleaflicker-Projektion.
@@ -22,7 +25,8 @@ Fantasy-Football-Helfer für Fleaflicker-Ligen. Läuft als ein Docker-Container 
 Score(Spieler, Woche) = Basis × Faktor(Gegner, Position)
 ```
 
-- **Basis** = Fantasy-Punkte pro Spiel nach *deinem* Liga-Scoring, berechnet aus nflverse-Stats. Laufende Saison, zu Saisonbeginn mit der Vorsaison gemischt; ohne Spielhistorie die Fleaflicker-Projektion.
+- **Basis** = Fantasy-Punkte pro Spiel nach *deinem* Liga-Scoring aus nflverse-Stats (laufende Saison, früh mit Vorsaison gemischt, 30 % Gewicht auf die letzten 3 Spiele), kombiniert mit der Fleaflicker-Projektion (60/40). Projiziert Fleaflicker weniger als 35 % des Schnitts, gilt der Spieler als Backup/Rollenverlust und die Projektion zählt fast allein.
+- **Verfügbarkeit** = Multiplikator pro Woche (OUT/IR/Saisonende 0, D 0.35, Q 0.8, IR ohne Datum: 4 Wochen 0).
 - **Faktor** = Punkte, die die gegnerische Defense an diese Position abgibt ÷ Liga-Schnitt (1.0 = neutral, 1.2 = 20 % weicher). Auch hier wird die Vorsaison zu Saisonbeginn mit einbezogen (Gewicht in den Stammdaten einstellbar, läuft über 8 Spiele linear aus).
 - **Run-D / Pass-D Rang**: 1 = stärkste, 32 = schwächste Defense (Yards + 20 × TDs pro Spiel).
 

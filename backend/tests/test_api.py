@@ -99,6 +99,19 @@ def test_full_flow(client):
     r = client.get("/api/leagues/354024/roster/1838651").json()
     assert r["players"][0]["name"] == "Dak Prescott" and r["players"][0]["owner_team_id"] == 1838651
 
+    rec = client.get("/api/leagues/354024/recommendations?weeks=2")
+    assert rec.status_code == 200, rec.text
+    rec = rec.json()
+    assert len(rec["lineups"]) == 2 and rec["lineups"][0]["starters"][0]["slot"] == "QB"
+    assert rec["lineups"][0]["starters"][0]["player"]["name"] == "Dak Prescott"
+    assert any(a["player"] == "Dak Prescott" and a["level"] == "warn" for a in rec["alerts"])  # Q
+    assert "QB" in rec["streamers"][0]["positions"]
+
+    cmp_ = client.get("/api/leagues/354024/compare?ids=15581,12159").json()
+    assert [p["name"] for p in cmp_["players"]] == ["Jalen Hurts", "Dak Prescott"]
+    assert cmp_["players"][0]["stats"]["games"] if "games" in cmp_["players"][0]["stats"] else True
+    assert client.get("/api/leagues/354024/search?q=lam").json()[0]["name"] == "Lamar Jackson"
+
     assert client.post("/api/leagues/354024/sync").status_code == 200
     assert client.get("/api/leagues/354024/teams").json()[0]["id"] == 1838651
     assert client.delete("/api/leagues/354024").status_code == 204
